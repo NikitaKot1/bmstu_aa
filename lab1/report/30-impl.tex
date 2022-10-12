@@ -1,0 +1,220 @@
+\chapter{Технологическая часть}
+
+В данном разделе будут приведены требования к программному обеспечению, средства реализации и листинги кода.
+
+\section{Требования к ПО}
+
+К программе предъявляется ряд требований:
+\begin{itemize}
+	\item реализованны все алгоритмы, соответствующие варианту;
+	\item на вход подаются две строки на русском или английском языке в любом регистре;
+	\item программа выдает искомое расстояние для выбранного метода (выбранных методов) и матрицы расстояний для матричных реализаций.
+\end{itemize}
+
+\section{Средства реализации}
+
+В качестве языка программирования для реализации данной лабораторной работы был выбран язык программирования Golang \cite{pythonlang}. 
+
+В данном языке есть все требующиеся для данной лабораторной инструменты разработки. 
+
+Время работы алгоритмов будет измеряться с помощью команды time в Linux \cite{pythonlangtime}.
+
+\section{Сведения о модулях программы}
+Программа состоит из трех модулей:
+\begin{enumerate}[label={\arabic*)}]
+	\item main.go -- главный файл программы;
+	\item algos.go -- файл программы, в котором располагаются коды всех алгоритмов;
+	\item sub.go -- файл программы, в котором располагаются вспомогательные функции.
+\end{enumerate}
+
+
+\section{Листинг кода}
+
+ В листингах \ref{lst:lev_rec}, \ref{lst:lev_mat}, \ref{lst:lev_rec_mat}, \ref{lst:dlev} приведены реализации алгоритмов нахождения расстояния Левенштейна и Дамерау--Левенштейна.
+
+\begin{lstlisting}[label=lst:lev_rec,caption=Функция нахождения расстояния Дамерау--Левенштейна с использованием рекурсии]
+func dam_lev_recursive(str1, str2 string, output bool) int {
+	min_ret := 0
+	n := len(str1)
+	m := len(str2)
+	if n == 0 {
+		return m
+	}
+	if m == 0 {
+		return n
+	}
+	change := 0
+	if str1[n-1] != str2[m-1] {
+		change += 1
+	}
+	if n > 1 && m > 1 && str1[n-1] == str2[m-2] && str1[n-2] == str2[m-1] {
+		min_ret = MinOf(dam_lev_recursive(str1[:n-1], str2, output)+1,
+		dam_lev_recursive(str1, str2[:m-1], output)+1,
+		dam_lev_recursive(str1[:n-1], str2[:m-1], output)+change,
+		dam_lev_recursive(str1[:n-2], str2[:m-2], output)+1)
+	} else {
+		min_ret = MinOf(dam_lev_recursive(str1[:n-1], str2, output)+1,
+		dam_lev_recursive(str1, str2[:m-1], output)+1,
+		dam_lev_recursive(str1[:n-1], str2[:m-1], output)+change)
+	}
+	return min_ret
+}
+	
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:lev_mat,caption=Функция нахождения расстояния Дамерау--Левенштейна с использованием матрицы.]
+func dam_lev_matrix(str1, str2 string, output bool) int {
+	min_ret := 0
+	n := len(str1)
+	m := len(str2)
+	matr := createMatr(n+1, m+1)
+	for i := 1; i < n+1; i++ {
+		for j := 1; j < m+1; j++ {
+			add, delete, change := matr[i-1][j]+1, matr[i][j-1]+1, matr[i-1][j-1]
+			
+			if str1[i-1] != str2[j-1] {
+				change += 1
+			}
+			
+			matr[i][j] = MinOf(add, delete, change)
+			
+			if i > 1 && j > 1 && str1[i-1] == str2[j-2] && str1[i-2] == str2[j-1] {
+				matr[i][j] = MinOf(matr[i][j], matr[i-2][j-2]+1)
+			}
+		}
+	}
+	return min_ret
+}
+	
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:lev_rec_mat,caption=Функция нахождения расстояния Дамерау--Левенштейна с использованием рекурсии с кешем.]
+func dam_lev_rec_cash_help(str1, str2 string, matr MatrInt) {
+	len1 := len(str1)
+	len2 := len(str2)
+	
+	if len1 == 0 {
+		matr[len1][len2] = len2
+	} else if len2 == 0 {
+		matr[len1][len2] = len1
+	} else {
+		//insert
+		if matr[len1][len2-1] == INF {
+			dam_lev_rec_cash_help(str1, str2[:len2-1], matr)
+		}
+		//delete
+		if matr[len1-1][len2] == INF {
+			dam_lev_rec_cash_help(str1[:len1-1], str2, matr)
+		}
+		//replase
+		if matr[len1-1][len2-1] == INF {
+			dam_lev_rec_cash_help(str1[:len1-1], str2[:len2-1], matr)
+		}
+		
+		change := 0
+		if str1[len1-1] != str2[len2-1] {
+			change += 1
+		}
+		
+		matr[len1][len2] = MinOf(matr[len1][len2-1]+1,
+		matr[len1-1][len2]+1,
+		matr[len1-1][len2-1]+change)
+		
+		if len1 > 1 && len2 > 1 && str1[len1-1] == str2[len2-2] && str1[len1-2] == str2[len2-1] {
+			matr[len1][len2] = MinOf(matr[len1][len2], matr[len1-2][len2-2]+1)
+		}
+	}
+}
+
+func dam_lev_rec_cash(str1, str2 string, output bool) int {
+	n := len(str1)
+	m := len(str2)
+	
+	matr := createInfMatrix(n+1, m+1)
+	dam_lev_rec_cash_help(str1, str2, matr)
+	
+	if output {
+		printMatr(matr, n+1, m+1)
+	}
+	
+	return matr[n][m]
+}
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:dlev,caption=Функция нахождения расстояния Левенштейна с использованием итераций.]
+func lev_matrix(str1, str2 string, output bool) int {
+	n := len(str1)
+	m := len(str2)
+	
+	matr := createMatr(n+1, m+1)
+	for i := 1; i < n+1; i++ {
+		for j := 1; j < m+1; j++ {
+			add, delete, change := matr[i-1][j]+1, matr[i][j-1]+1, matr[i-1][j-1]
+			
+			if str1[i-1] != str2[j-1] {
+				change += 1
+			}
+			
+			matr[i][j] = MinOf(add, delete, change)
+		}
+	}
+	
+	if output {
+		printMatr(matr, n+1, m+1)
+	}
+	
+	return matr[n][m]
+}
+\end{lstlisting}
+
+\section{Функциональные тесты}
+В таблице \ref{tabular:functional_test} приведены функциональные тесты для алгоритмов вычисления расстояния Левенштейна (в таблице столбец подписан "Левенштейн") и Дамерау — Левенштейна (в таблице - "Дамерау-Л."). Все тесты пройдены успешно.
+
+
+\begin{table}[h]
+	\begin{center}
+		\caption{\label{tabular:functional_test} Функциональные тесты}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			& \multicolumn{2}{c|}{Входные данные} & \multicolumn{2}{c|}{Ожидаемый результат} \\
+			\hline
+			№&Строка 1&Строка 2&Левенштейн&Дамерау-Л. \\
+			\hline
+			1&скат&кот&2&2 \\
+			\hline
+			2&машина&малина&1&1 \\
+			\hline
+			3&дворик&доврик&2&1 \\
+			\hline
+			4&"пустая строка"&университет&11&11 \\
+			\hline
+			5&сентябрь&"пустая строка"&8&8 \\
+			\hline
+			8&тело&телодвижение&8&8 \\
+			\hline
+			9&ноутбук&планшет&7&7 \\
+			\hline
+			10&глина&малина&2&2 \\
+			\hline
+			11&рекурсия&ркерусия&3&2 \\
+			\hline
+			12&браузер&баурзер&2&2 \\
+			\hline
+			13&bring&brought&4&4 \\
+			\hline
+			14&moment&minute&4&4 \\ 
+			\hline
+			15&person&eye&5&5 \\
+			\hline
+			16&week&weekend&3&3 \\
+			\hline 
+			17&city&town&4&4 \\
+			\hline
+		\end{tabular}
+	\end{center}
+\end{table}
+
+
+\section*{Вывод}
+
+Были разработаны и протестированы алгоритмы: нахождения расстояния Дамерау -- Левенштейна рекурсивно, с заполнением матрицы и рекурсивно с заполнением матрицы, а также нахождения расстояния Левенштейна с заполнением матрицы.
