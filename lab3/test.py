@@ -52,7 +52,7 @@ def test(len, tag):
         y_time_count.append(time_count * 10000,)
         y_time_quick.append(time_quick * 10000,)
         y_time_shaker.append(time_shaker * 10000,)
-        print("len: {:4d} || count: {:8.3f} || quick: {:8.3f} || shaker: {:8.3f}".format(i * 100, time_count * 10000, time_quick * 10000, time_shaker * 10000))
+        print("{:4d} & {:8.3f} & {:8.3f} & {:8.3f}\\\\\n\\hline".format(i * 100, time_count * 10000, time_quick * 10000, time_shaker * 10000))
 
 
 
@@ -96,6 +96,6 @@ if __name__ == "__main__":
         plt.legend()
         plt.grid()
         plt.title("Временные характеристики алгоритмов сортировки")
-        plt.ylabel("Затраченное время (мск)")
+        plt.ylabel("Затраченное время (мкс)")
         plt.xlabel("Длина массива")
         plt.show()

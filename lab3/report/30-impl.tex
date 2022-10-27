@@ -16,10 +16,10 @@
 
 В данном языке есть все требующиеся для данной лабораторной инструменты разработки. 
 
-Время работы алгоритмов было замерено с помощью функции process\_time() из библиотеки time \cite{pythonlangtime}
+Процессорное время работы реализаций алгоритмов было замерено с помощью функции process\_time() из библиотеки time \cite{pythonlangtime}
 
 \section{Сведения о модулях программы}
-Программа состоит из двух модулей:
+Программа состоит из трех модулей:
 \begin{enumerate}
 	\item main.py - главный файл программы, в котором располагается меню;
 	\item algos.py - файд программы, в котором располагаются коды всех алгоритмов;
@@ -27,10 +27,10 @@
 \end{enumerate}
 
 
-\section{Листинг кода}
+\section{Реализация алгоритмов}
 В листингах \ref{lst:quick_sort}, \ref{lst:shaker_sort}, \ref{lst:count_sort} представлены реализации алгоритмов сортировок (перемешиванием, вставками и выбором).
 
-\begin{lstlisting}[label=lst:quick_sort,caption=Алгоритм быстрой сортировки]
+\begin{lstlisting}[label=lst:quick_sort,caption=Реализация алгоритма быстрой сортировки]
 def partition(arr, low, high):
 	p = arr[high]
 	i = low - 1
@@ -51,7 +51,7 @@ def quick_sort(arr):
 	quick(arr, 0, len(arr) - 1)
 \end{lstlisting}
 
-\begin{lstlisting}[label=lst:shaker_sort,caption= Алгоритм сортировки перемешиванием]
+\begin{lstlisting}[label=lst:shaker_sort,caption=Реализация алгоритма сортировки перемешиванием]
 def shaker_sort(arr):
 	swapped = True
 	st = 0
@@ -74,7 +74,7 @@ def shaker_sort(arr):
 	return arr
 \end{lstlisting}
 
-\begin{lstlisting}[label=lst:count_sort,caption=Алгоритм сортировки посчетом]
+\begin{lstlisting}[label=lst:count_sort,caption=Реализация алгоритма сортировки посчетом]
 def counting_sort_help(arr, largest):
 	c = [0]*(largest + 1)
 	for i in range(len(arr)):
@@ -122,4 +122,4 @@ return counting_sort_help(arr, largest)
 
 \section*{Вывод}
 
-Были разработаны схемы всех трех алгоритмов сортировки. Для каждого из них были рассчитаны и оценены лучшие и худшие случаи.
+Были реализованы все три алгоритма сортировки. Для каждого из них были рассчитаны и оценены лучшие и худшие случаи.

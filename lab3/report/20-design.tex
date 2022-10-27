@@ -28,14 +28,19 @@
 
 \section{Модель вычислений (оценки трудоемкости)}
 
-Для последующего вычисления трудоемкости необходимо ввести модель вычислений:
+Для последующего вычисления трудоемкости необходимо ввести модель вычислений.
 \begin{enumerate}
-	\item операции из списка (\ref{for:opers}) имеют трудоемкость 1;
+	\item Операции из списка (\ref{for:opers2}) имеют трудоемкость 1:
 	\begin{equation}
-		\label{for:opers}
-		+, -, /, *, \%, =, +=, -=, *=, /=, \%=, ==, !=, <, >, <=, >=, [], ++, {-}-
+		\label{for:opers2}
+		+, ++, +=, -, {-}-, -=, !=, <, >, <=, >=, <<, >>, []
 	\end{equation}
-	\item трудоемкость оператора выбора \code{if условие then A else B} рассчитывается, как (\ref{for:if});
+	\item Операции из списка (\ref{for:opers1}) имеют трудоемкость 2:
+	\begin{equation}
+		\label{for:opers1}
+		/, /=, *, *= ,\%, \%=
+	\end{equation}
+	\item трудоемкость оператора выбора \code{if условие then A else B} рассчитывается как
 	\begin{equation}
 		\label{for:if}
 		f_{if} = f_{\text{условия}} +
@@ -52,40 +57,41 @@
 	\item трудоемкость вызова функции равна 0.
 \end{enumerate}
 
-\section{Трудоёмкость алгоритм}
+\section{Трудоёмкость алгоритмов}
 
 Обозначим во всех последующих вычислениях размер массивов как N.
 
 \subsection{Алгоритм сортировки перемешиванием}
 
-\begin{itemize}
-	\item Трудоёмкость сравнения внешнего цикла $WHILE(swap == True)$, которая равна (\ref{for:bubble_outer}):
-	\begin{equation}
-		\label{for:bubble_outer}
-		f_{outer} = 1 + 2 \cdot (N - 1)
-	\end{equation}
-	\item Суммарная трудоёмкость внутренних циклов, количество итераций которых меняется в промежутке $[1..N-1]$, которая равна (\ref{for:bubble_inner}):
-	\begin{equation}
-		\label{for:bubble_inner}
-		f_{inner} = 5(N - 1) + \frac{2 \cdot (N - 1)}{2} \cdot (3 + f_{if})
-	\end{equation}
-	\item Трудоёмкость условия во внутреннем цикле, которая равна (\ref{for:bubble_if}):
-	\begin{equation}
-		\label{for:bubble_if}
-		f_{if} = 4 + \begin{cases}
-			0, & \text{л.с.}\\
-			9, & \text{х.с.}\\
-		\end{cases}
-	\end{equation}
-\end{itemize}
 
-Трудоёмкость в лучшем случае (\ref{for:bubble_best}):
+Трудоёмкость сравнения внешнего цикла $WHILE(swap == True)$, которая равна (\ref{for:bubble_outer}):
+\begin{equation}
+	\label{for:bubble_outer}
+	f_{outer} = 1 + 2 \cdot (N - 1)
+\end{equation}
+
+Суммарная трудоёмкость внутренних циклов, количество итераций которых меняется в промежутке $[1..N-1]$, которая равна
+\begin{equation}
+	\label{for:bubble_inner}
+	f_{inner} = 5(N - 1) + \frac{2 \cdot (N - 1)}{2} \cdot (3 + f_{if})
+\end{equation}
+
+Трудоёмкость условия во внутреннем цикле, которая равна
+\begin{equation}
+	\label{for:bubble_if}
+	f_{if} = 4 + \begin{cases}
+		0, & \text{л.с.}\\
+		9, & \text{х.с.}\\
+	\end{cases}
+\end{equation}
+
+Трудоёмкость в лучшем случае, который наступает при отсортированном массиве (\ref{for:bubble_best}):
 \begin{equation}
 	\label{for:bubble_best}
 	f_{best} = -3 + \frac{3}{2} N + \approx \frac{3}{2} N = O(N)
 \end{equation}
 
-Трудоёмкость в худшем случае (\ref{for:bubble_worst}):
+Трудоёмкость в худшем случае, который наступает при обратно отсортированном массиве (\ref{for:bubble_worst}):
 \begin{equation}
 	\label{for:bubble_worst}
 	f_{worst} = -3 - 8N + 8N^2 \approx 8N^2 = O(N^2)
@@ -96,16 +102,15 @@
 \subsection{Алгоритм быстрой сортировки}
 
 
-Трудоёмкость алгоритма быстрой сортировки состоит из:
+Трудоёмкость алгоритма быстрой сортировки состоит из следующих составляющих.
 \begin{itemize}
-	\item Трудоёмкость вычисления опорного элемента разбиения массива на 2 части (\ref{for:outer_quick}):\\
-	Трудоемкость цикла сравнения, инкремента внешнего цикла, а также зависимых только от него операций, по $i \in [1..m)$, где $m \in N/2^k$, где $k \in [0..f)$, где $f$ равна максимальной глубине стека рекурсии:
+	\item Трудоёмкость вычисления опорного элемента разбиения массива на 2 части (\ref{for:outer_quick}): трудоемкость сравнения в цикле, инкремента во внешнем цикле, а также зависимых только от цикла операций, по $i \in [1..m)$, где $m \in N/2^k$, где $k \in [0..f)$, где $f$ равна максимальной глубине стека рекурсии:
 	\begin{equation}
 		\label{for:outer_quick}
 		f_{part} = 2 + 12(m - 1)
 	\end{equation}
-	\item 2 рекурсивных вызова, таким образом максимальная глубина вызова стека будет равна $log_2(N)$
-	\item Трудоёмкость условия во внутреннем цикле, которая равна (\ref{for:quick_if}):
+	\item Каждый рекурсивный вызов порождает 2 других рекурсивных вызова, кроме тривиальных случаев, таким образом максимальная глубина вызова стека будет равна $log_2(N)$ в общем случае.
+	\item Трудоёмкость условия во внутреннем цикле, которая равна
 	\begin{equation}
 		\label{for:quick_if}
 		f_{if} = 3 + \begin{cases}
@@ -115,16 +120,16 @@
 	\end{equation}
 \end{itemize}
 
-Трудоёмкость в лучшем случае (\ref{for:quick_best}):
+Трудоёмкость в лучшем случае, который наступает при случайном массиве (\ref{for:quick_best}):
 \begin{equation}
 	\label{for:quick_best}
-	f_{best} = (2 + 12(N) * log_2(N)) \approx \frac 12 * N * log_2(N) = O(N*log_2(N))
+	f_{best} = (2 + 12(N) * log_2(N)) \approx 12 * N * log_2(N) = O(N*log_2(N))
 \end{equation}
 
-Трудоёмкость в худшем случае (\ref{for:quick_worst}):
+Трудоёмкость в худшем случае. В худшем случае, например, отсортированном массиве, глубина стека вызова функции равна N (\ref{for:quick_worst}):
 \begin{equation}
 	\label{for:quick_worst}
-	f_{worst} = (2 + 6(N) * log_2(N)) \approx \frac 6 * N * log_2(N) = O(N*log_2(N))
+	f_{worst} = (2 + 6(N) * N) \approx  6 * N ^ 2 = O(N ^ 2)
 \end{equation}
 
 
@@ -135,17 +140,17 @@
 
 Обозначим диапазон значений сортируемого массива за $M$. Тогда трудоёмкость сортировки подсчетом состоит из:
 \begin{itemize}
-	\item первого цикла, трудоемкость которого равна (\ref{for:count1}):
+	\item первого цикла
 	\begin{equation}
 		\label{for:count1}
 		f_{first} = 2 + 6 * N
 	\end{equation}
-	\item второго цикла, трудоемкость которого равна (\ref{for:count2}):
+	\item второго цикла
 	\begin{equation}
 		\label{for:count2}
 		f_{second} = 2 + 6 * M
 	\end{equation}
-	\item третьего цикла, трудоемкость которого равна (\ref{for:count3}):
+	\item третьего цикла
 	\begin{equation}
 		\label{for:count3}
 		f_{third} = 2 + 8 * N
