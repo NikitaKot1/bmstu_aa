@@ -4,6 +4,9 @@
 #include <array>
 #include <stdlib.h>
 #include <iostream>
+#include <chrono>
+#include <thread>
+#include <cmath>
 
 
 using namespace std;
@@ -39,34 +42,22 @@ matr *mutl(matr *a, matr *b, const int m)
         int *prom = (int *)calloc(m, sizeof(int));
         for (int j = start; j < end; j++) { // 3
             int x = a->elements[j];
-            cout << '\n';
-            cout << "x: " << x << '\n';
             
             for (int k = 0; k < int(b->elements.size()); k++) {
                 int row;
                 for (row = 0; row < int(b->rows_index.size() - 1); ++row) {
-                    cout << row << ' ';
                     if (b->rows_index[row] <= k && b->rows_index[row + 1] > k)
                         break;
                 }
-                
-                cout << "\nk:   " << k << '\n';
-                cout << "ind: " << b->rows_index[row] << '\n';
-                cout << "row: " << row << '\n';
-
                 if (row == a->columns[j])
                     prom[b->columns[k]] += x * b->elements[k]; // 3.a
-                
-                for (int mmm = 0; mmm < m; mmm++)
-                    cout << prom[mmm] << ' ';
-                cout << '\n';
             }
         }
 
-        for (int i = 0; i < m; i++) // 3.b
-            if (prom[i]) {
-                new_matr->elements.push_back(prom[i]);
-                new_matr->columns.push_back(i);
+        for (int f = 0; f < m; f++) // 3.b
+            if (prom[f]) {
+                new_matr->elements.push_back(prom[f]);
+                new_matr->columns.push_back(f);
                 col++;
             }
         new_matr->rows_index.push_back(col); // 3.c
@@ -75,6 +66,83 @@ matr *mutl(matr *a, matr *b, const int m)
 
     return new_matr; // 4
 }
+
+int **mutl_new(matr *a, matr *b, const int n, const int m, const int q)
+{
+    int **new_matr = (int**)calloc(n, sizeof(int*));
+    for (int i = 1; i < int(a->rows_index.size()); i++) // 2
+    {
+        int start = a->rows_index[i-1];
+        int end = a->rows_index[i];
+        int *prom = (int *)calloc(q, sizeof(int));
+        for (int j = start; j < end; j++) { // 3
+            int x = a->elements[j];
+            
+            for (int k = 0; k < int(b->elements.size()); k++) {
+                int row;
+                for (row = 0; row < int(b->rows_index.size() - 1); ++row) {
+                    if (b->rows_index[row] <= k && b->rows_index[row + 1] > k)
+                        break;
+                }
+                if (row == a->columns[j])
+                    prom[b->columns[k]] += x * b->elements[k]; // 3.a
+            }
+        }
+        new_matr[i - 1] = prom;
+   }
+    return new_matr; // 4
+}
+
+void parallel_func(int **res, int st, int en, matr *a, matr *b, const int q)
+{
+    for (int i = st; i < en; i++) // 2
+    {
+        int start = a->rows_index[i-1];
+        int end = a->rows_index[i];
+        int *prom = (int *)calloc(q, sizeof(int));
+        for (int j = start; j < end; j++) { // 3
+            int x = a->elements[j];
+            
+            for (int k = 0; k < int(b->elements.size()); k++) {
+                int row;
+                for (row = 0; row < int(b->rows_index.size() - 1); ++row) {
+                    if (b->rows_index[row] <= k && b->rows_index[row + 1] > k)
+                        break;
+                }
+                if (row == a->columns[j])
+                    prom[b->columns[k]] += x * b->elements[k]; // 3.a
+            }
+        }
+        res[i - 1] = prom;
+   }
+}
+
+int **mutl_parallel(matr *a, matr *b, const int n, const int m, const int q)
+{
+    int **new_matr = (int**)calloc(n, sizeof(int*));
+    int thread_count = 2;
+    vector<thread> threads(thread_count);
+    double dc = double(n) / thread_count;
+    int nows = 1;
+    for (auto& thr: threads) {
+        thr = thread(parallel_func, new_matr, nows, int(round(nows + dc)), a, b, q);
+        nows += dc;
+    }
+
+    for (auto& thr: threads)
+        thr.join();
+
+    return new_matr; // 4
+}
+
+/*
+4 3 5
+3 0 0 0 0 3
+1 2 3 0 2 0
+3 0 0 0 1
+0 0 3 0 0
+1 2 3 0 0
+*/
 
 /*
 3 3

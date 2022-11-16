@@ -59,6 +59,26 @@ int main()
     matr *mul = mutl(new_matr, new_matr2, q);
 
     print(mul);
-    
+
+    int **new_mul = mutl_parallel(new_matr, new_matr2, n, m, q);
+
+    for (int i = 0; i < n; i++) {
+        cout << '\n';
+        for (int j = 0; j < q; j++)
+            cout << new_mul[i][j] << ' ';
+    }
+    cout << '\n';
+    for (int i = 0; i < n; i++)
+        free(new_mul[i]);
+    free(new_mul);
     return 0;
 }
+
+/*
+4 3 5
+3 0 0 0 0 3
+1 2 3 0 2 0
+3 0 0 0 1
+0 0 3 0 0
+1 2 3 0 0
+*/
