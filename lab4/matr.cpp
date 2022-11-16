@@ -139,7 +139,7 @@ void parallel_func(int **res, int st, int en, matr *a, matr *b, const int q)
 int **mutl_parallel(matr *a, matr *b, const int n, const int m, const int q)
 {
     int **new_matr = (int**)calloc(n, sizeof(int*));
-    int thread_count = 64;
+    int thread_count = 16;
     vector<thread> threads(thread_count);
     double dc = double(n) / thread_count;
     int nows = 1;
