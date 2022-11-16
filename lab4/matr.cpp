@@ -8,6 +8,7 @@
 #include <thread>
 #include <cmath>
 
+#define N 500
 
 using namespace std;
 
@@ -16,6 +17,24 @@ matr *get_csrrepresent(vector<vector<int>> old_matr)
     matr *new_matr = new(matr);
     int row_len = old_matr.size();
     int col_len = old_matr[0].size();
+    for (int i = 0; i < row_len; i++) {
+        new_matr->rows_index.push_back(new_matr->columns.size());
+        for (int j = 0; j < col_len; j++) {
+            if (old_matr[i][j] != 0) {
+                new_matr->columns.push_back(j);
+                new_matr->elements.push_back(old_matr[i][j]);
+            }
+        }
+    }
+    new_matr->rows_index.push_back(new_matr->columns.size());
+    return new_matr;
+}
+
+matr *get_csrrepresent_m(int **old_matr)
+{
+    matr *new_matr = new(matr);
+    int row_len = N;
+    int col_len = N;
     for (int i = 0; i < row_len; i++) {
         new_matr->rows_index.push_back(new_matr->columns.size());
         for (int j = 0; j < col_len; j++) {
@@ -120,17 +139,26 @@ void parallel_func(int **res, int st, int en, matr *a, matr *b, const int q)
 int **mutl_parallel(matr *a, matr *b, const int n, const int m, const int q)
 {
     int **new_matr = (int**)calloc(n, sizeof(int*));
-    int thread_count = 2;
+    int thread_count = 64;
     vector<thread> threads(thread_count);
     double dc = double(n) / thread_count;
     int nows = 1;
+
+    auto start = chrono::high_resolution_clock::now();
     for (auto& thr: threads) {
         thr = thread(parallel_func, new_matr, nows, int(round(nows + dc)), a, b, q);
         nows += dc;
     }
+    auto stop = chrono::high_resolution_clock::now();
+    auto dur1 = chrono::duration_cast<chrono::microseconds>((stop - start));
+    cout << "Запуск: " << dur1.count() << '\n';
 
+    auto start2 = chrono::high_resolution_clock::now();
     for (auto& thr: threads)
         thr.join();
+    auto stop2 = chrono::high_resolution_clock::now();
+    auto dur2 = chrono::duration_cast<chrono::microseconds>((stop2 - start2));
+    cout << "Синхро: " << dur2.count() << '\n';
 
     return new_matr; // 4
 }

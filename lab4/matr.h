@@ -14,3 +14,4 @@ matr *get_csrrepresent(vector<vector<int>> old_matr);
 matr *mutl(matr *a, matr *b, const int m);
 int **mutl_new(matr *a, matr *b, const int n, const int m, const int q);
 int **mutl_parallel(matr *a, matr *b, const int n, const int m, const int q);
+matr *get_csrrepresent_m(int **old_matr);

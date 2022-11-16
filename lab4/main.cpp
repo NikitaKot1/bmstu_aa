@@ -2,10 +2,24 @@
 #include <iostream>
 #include <stdio.h>
 
-
 #include "matr.h"
 
 using namespace std;
+
+#define N 500
+
+int **generate()
+{
+    int **mat = (int**)calloc(N, sizeof(int*));
+    for (int i = 0; i < N; i++)
+        mat[i] = (int*)calloc(N, sizeof(int));
+    for (int f = 0; f < N; f++) {
+        int i = rand() % N;
+        int j = rand() % N;
+        mat[i][j] = rand();
+    }
+    return mat;
+}
 
 void print(matr *new_matr)
 {
@@ -43,32 +57,36 @@ vector<vector<int>> *input(int n, int m)
 int main()
 {
     setbuf(stdout, NULL);
-    int n = 0, m = 0, q = 0;
-    cin >> n;
-    cin >> m;
-    cin >> q;
+    srand(time(nullptr));
+    // int n = 0, m = 0, q = 0;
+    // cin >> n;
+    // cin >> m;
+    // cin >> q;
     
-    auto m1 = input(n, m);
-    auto m2 = input(m, q);
+    // auto m1 = input(n, m);
+    // auto m2 = input(m, q);
 
-    matr * new_matr = get_csrrepresent(*m1);
-    matr * new_matr2 = get_csrrepresent(*m2);
+    auto m1 = generate();
+    auto m2 = generate();
 
-    print(new_matr);
+    matr * new_matr = get_csrrepresent_m(m1);
+    matr * new_matr2 = get_csrrepresent_m(m2);
 
-    matr *mul = mutl(new_matr, new_matr2, q);
+  //  print(new_matr);
 
-    print(mul);
+   // matr *mul = mutl(new_matr, new_matr2, q);
 
-    int **new_mul = mutl_parallel(new_matr, new_matr2, n, m, q);
+   // print(mul);
 
-    for (int i = 0; i < n; i++) {
-        cout << '\n';
-        for (int j = 0; j < q; j++)
-            cout << new_mul[i][j] << ' ';
-    }
-    cout << '\n';
-    for (int i = 0; i < n; i++)
+    int **new_mul = mutl_parallel(new_matr, new_matr2, N, N, N);
+
+    // for (int i = 0; i < n; i++) {
+    //     cout << '\n';
+    //     for (int j = 0; j < q; j++)
+    //         cout << new_mul[i][j] << ' ';
+    // }
+    // cout << '\n';
+    for (int i = 0; i < N; i++)
         free(new_mul[i]);
     free(new_mul);
     return 0;
