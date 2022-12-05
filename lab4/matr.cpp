@@ -8,8 +8,6 @@
 #include <thread>
 #include <cmath>
 
-#define N 500
-
 using namespace std;
 
 matr *get_csrrepresent(vector<vector<int>> old_matr)
@@ -86,30 +84,30 @@ matr *mutl(matr *a, matr *b, const int m)
     return new_matr; // 4
 }
 
-int **mutl_new(matr *a, matr *b, const int n, const int m, const int q)
+int **mutl_new(matr *a, matr *b, const int n, const int m, const int q)         //0
 {
-    int **new_matr = (int**)calloc(n, sizeof(int*));
-    for (int i = 1; i < int(a->rows_index.size()); i++) // 2
-    {
-        int start = a->rows_index[i-1];
-        int end = a->rows_index[i];
-        int *prom = (int *)calloc(q, sizeof(int));
-        for (int j = start; j < end; j++) { // 3
-            int x = a->elements[j];
+    int **new_matr = (int**)calloc(n, sizeof(int*));                            //1
+    for (int i = 1; i < int(a->rows_index.size()); i++) // 2                    //2
+    {                                   
+        int start = a->rows_index[i-1];                                         //3
+        int end = a->rows_index[i];                                             //4
+        int *prom = (int *)calloc(q, sizeof(int));                              //5
+        for (int j = start; j < end; j++) { // 3                                //6
+            int x = a->elements[j];                                             //7
             
-            for (int k = 0; k < int(b->elements.size()); k++) {
-                int row;
-                for (row = 0; row < int(b->rows_index.size() - 1); ++row) {
-                    if (b->rows_index[row] <= k && b->rows_index[row + 1] > k)
-                        break;
+            for (int k = 0; k < int(b->elements.size()); k++) {                 //8
+                int row;                                                        //9
+                for (row = 0; row < int(b->rows_index.size() - 1); ++row) {     //10
+                    if (b->rows_index[row] <= k && b->rows_index[row + 1] > k)  //11
+                        break;                                                  //12
                 }
-                if (row == a->columns[j])
-                    prom[b->columns[k]] += x * b->elements[k]; // 3.a
+                if (row == a->columns[j])                                       //13
+                    prom[b->columns[k]] += x * b->elements[k]; // 3.a           //14
             }
         }
-        new_matr[i - 1] = prom;
+        new_matr[i - 1] = prom;                                                 //15
    }
-    return new_matr; // 4
+    return new_matr; // 4                                                       //16
 }
 
 void parallel_func(int **res, int st, int en, matr *a, matr *b, const int q)
@@ -136,14 +134,13 @@ void parallel_func(int **res, int st, int en, matr *a, matr *b, const int q)
    }
 }
 
-int **mutl_parallel(matr *a, matr *b, const int n, const int m, const int q)
+int **mutl_parallel(matr *a, matr *b, const int n, const int m, const int q, int thread_count)
 {
     int **new_matr = (int**)calloc(n, sizeof(int*));
-    int thread_count = 16;
     vector<thread> threads(thread_count);
     double dc = double(n) / thread_count;
     int nows = 1;
-
+    cout << thread_count << '\n';
     auto start = chrono::high_resolution_clock::now();
     for (auto& thr: threads) {
         thr = thread(parallel_func, new_matr, nows, int(round(nows + dc)), a, b, q);

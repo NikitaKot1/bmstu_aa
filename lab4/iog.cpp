@@ -13,6 +13,7 @@ int **generate()
     return mat;
 }
 
+
 void print(matr *new_matr)
 {
     cout << "\nrows ";

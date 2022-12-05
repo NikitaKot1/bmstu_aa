@@ -1,0 +1,223 @@
+\chapter{Технологическая часть}
+
+В данном разделе будут приведены требования к программному обеспечению, средства реализации и листинги кода.
+
+\section{Требования к ПО}
+
+К программе предъявляется ряд требований:
+\begin{itemize}
+	\item на вход подаётся массив сравнимых элементов (целые числа);
+	\item на выходе — тот же массив, но в отсортированном порядке.
+\end{itemize}
+
+\section{Средства реализации}
+
+В качестве языка программирования для реализации данной лабораторной работы был выбран язык программирования Си++ \cite{pythonlang}. 
+
+В данном языке есть все требующиеся для данной лабораторной инструменты разработки. 
+
+Процессорное время работы реализаций алгоритмов было замерено с помощью функции chrono::high\_resolution\_clock::now(); из библиотеки <chrono> \cite{pythonlangtime}.
+
+\section{Сведения о модулях программы}
+Программа состоит из трех модулей:
+\begin{enumerate}
+	\item main.cpp - главный файл программы, в котором располагается меню;
+	\item matr.cpp - файл программы, в котором располагаются все варианты умножения;
+	\item iog.cpp - файл с вводом, выводом и генерацией матриц.
+\end{enumerate}
+
+
+\section{Реализация алгоритмов}
+В листингах \ref{lst:quick_sort}, \ref{lst:shaker_sort}, \ref{lst:count_sort} представлены реализации алгоритмов умножения разреженных матриц (последовательный и параллельный).
+
+\begin{lstlisting}[label=lst:quick_sort,caption=Реализация последовательного алгоритма умножения разреженных матриц]
+matr *mutl(matr *a, matr *b, const int m)
+{
+	matr *new_matr = new(matr); // 1
+	new_matr->rows_index.push_back(0);
+	int col = 0;
+	for (int i = 1; i < int(a->rows_index.size()); i++) // 2
+	{
+		int start = a->rows_index[i-1];
+		int end = a->rows_index[i];
+		int *prom = (int *)calloc(m, sizeof(int));
+		for (int j = start; j < end; j++) { // 3
+			int x = a->elements[j];
+			for (int k = 0; k < int(b->elements.size()); k++) {
+				int row;
+				for (row = 0; row < int(b->rows_index.size() - 1); ++row) {
+					if (b->rows_index[row] <= k && b->rows_index[row + 1] > k)
+					break;
+				}
+				if (row == a->columns[j])
+				prom[b->columns[k]] += x * b->elements[k]; // 3.a
+			}
+		}
+		for (int f = 0; f < m; f++) // 3.b
+		if (prom[f]) {
+			new_matr->elements.push_back(prom[f]);
+			new_matr->columns.push_back(f);
+			col++;
+		}
+		new_matr->rows_index.push_back(col); // 3.c
+		free(prom);
+	}
+	return new_matr; // 4
+}
+\end{lstlisting}
+
+\begin{lstlisting}[label=lst:shaker_sort,caption=Реализация паралельного алгоритма умножения разреженных матриц]
+void parallel_func(int **res, int st, int en, matr *a, matr *b, const int q)
+{
+	for (int i = st; i < en; i++) // 2
+	{
+		int start = a->rows_index[i-1];
+		int end = a->rows_index[i];
+		int *prom = (int *)calloc(q, sizeof(int));
+		for (int j = start; j < end; j++) { // 3
+			int x = a->elements[j];
+			
+			for (int k = 0; k < int(b->elements.size()); k++) {
+				int row;
+				for (row = 0; row < int(b->rows_index.size() - 1); ++row) {
+					if (b->rows_index[row] <= k && b->rows_index[row + 1] > k)
+					break;
+				}
+				if (row == a->columns[j])
+				prom[b->columns[k]] += x * b->elements[k]; // 3.a
+			}
+		}
+		res[i - 1] = prom;
+	}
+}
+
+int **mutl_parallel(matr *a, matr *b, const int n, const int m, const int q, int thread_count)
+{
+	int **new_matr = (int**)calloc(n, sizeof(int*));
+	vector<thread> threads(thread_count);
+	double dc = double(n) / thread_count;
+	int nows = 1;
+	cout << thread_count << '\n';
+	auto start = chrono::high_resolution_clock::now();
+	for (auto& thr: threads) {
+		thr = thread(parallel_func, new_matr, nows, int(round(nows + dc)), a, b, q);
+		nows += dc;
+	}
+	auto stop = chrono::high_resolution_clock::now();
+	auto dur1 = chrono::duration_cast<chrono::microseconds>((stop - start));
+	cout << "Zapusk: " << dur1.count() << '\n';
+	
+	auto start2 = chrono::high_resolution_clock::now();
+	for (auto& thr: threads)
+	thr.join();
+	auto stop2 = chrono::high_resolution_clock::now();
+	auto dur2 = chrono::duration_cast<chrono::microseconds>((stop2 - start2));
+	cout << "Simhro: " << dur2.count() << '\n';
+	return new_matr; // 4
+}
+\end{lstlisting}
+
+\section{Функциональные тесты}
+
+В таблице \ref{tbl:functional_test} приведены тесты для функций, реализующих алгоритмы сортировки. Тесты пройдены успешно.
+
+\begin{table}
+	\begin{center}
+		\captionsetup{singlelinecheck = false, justification=centering}
+		\caption{Тестовые случаи}
+		\begin{tabular}{l|l|l|l}
+			N & Матрица 1 & Матрица 2 & Результат \\ 
+			\hline
+			\vspace{2mm}
+			\vspace{2mm}
+			1 & $\begin{pmatrix}
+				1 & 1 & 1\\
+				5 & 5 & 5\\
+				2 & 2 & 2
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				1 \\
+				1 \\
+				1 
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				3 \\
+				15 \\
+				6
+			\end{pmatrix}$ \\
+			\vspace{2mm}
+			\vspace{2mm}
+			2 & $\begin{pmatrix}
+				1 & 1 & 1
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				1 \\
+				1 \\
+				1
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				1 & 1 & 1\\
+				1 & 1 & 1 \\
+				1 & 1 & 1
+			\end{pmatrix}$ \\
+			\vspace{2mm}
+			\vspace{2mm}
+			3 & $\begin{pmatrix}
+				1 & 1 \\
+				1 & 1
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				1 & 1\\
+				1 & 1
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				2 & 2\\
+				2 & 2
+			\end{pmatrix}$ \\
+			\vspace{2mm}
+			\vspace{2mm}
+			4 & $\begin{pmatrix}
+				2
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				2
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				4
+			\end{pmatrix}$ \\
+			\vspace{2mm}
+			\vspace{2mm}
+			5 & $\begin{pmatrix}
+				1 & -2 & 3\\
+				1 & 2 & 3\\
+				1 & 2 & 3
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				-1 & 2 & 3\\
+				1 & 2 & 3\\
+				1 & 2 & 3
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				0 & 4 & 6\\
+				4 & 12 & 18\\
+				4 & 12 & 18
+			\end{pmatrix}$\\
+			\vspace{2mm}
+			\vspace{2mm}
+			6 & $\begin{pmatrix}
+				1 & 2
+			\end{pmatrix}$ &
+			$\begin{pmatrix}
+				1 & 2
+			\end{pmatrix}$ &
+			Некорректный размер\\
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\FloatBarrier
+
+
+\section*{Вывод}
+
+Были реализованы алгоритмы умножения разреженных матриц: последовательный и параллельный.

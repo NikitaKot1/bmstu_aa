@@ -8,3 +8,6 @@ app: $(BINARES)
 bin/%.o: %.cpp
 	mkdir -p bin
 	$(CC) -c -o $@ $(GTK_FLAGS) $(FLAGS) $^ 
+
+clean:
+	rm bin/*.o app

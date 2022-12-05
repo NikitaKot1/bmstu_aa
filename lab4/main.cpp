@@ -1,9 +1,17 @@
 #include <vector>
 #include <iostream>
 #include <stdio.h>
+#include <vector>
+#include <array>
+#include <stdlib.h>
+#include <iostream>
+#include <chrono>
+#include <thread>
+#include <cmath>
 
 #include "matr.h"
 #include "iog.h"
+
 
 int main()
 {
@@ -29,7 +37,21 @@ int main()
 
    // print(mul);
 
-    int **new_mul = mutl_parallel(new_matr, new_matr2, N, N, N);
+    int **new_mul = NULL;
+
+    auto start = chrono::high_resolution_clock::now();
+    auto m3 = mutl_new(new_matr, new_matr2, N, N, N);
+    auto stop = chrono::high_resolution_clock::now();
+    auto dur1 = chrono::duration_cast<chrono::microseconds>((stop - start));
+    cout << "Последовательный: " << dur1.count() << '\n';
+    free(m3);
+
+    for (int i = 1; i < 256; i = i * 2) {
+        new_mul = mutl_parallel(new_matr, new_matr2, N, N, N, i);
+        for (int i = 0; i < N; i++)
+            free(new_mul[i]);
+        free(new_mul);
+    }
 
     // for (int i = 0; i < n; i++) {
     //     cout << '\n';
@@ -37,9 +59,6 @@ int main()
     //         cout << new_mul[i][j] << ' ';
     // }
     // cout << '\n';
-    for (int i = 0; i < N; i++)
-        free(new_mul[i]);
-    free(new_mul);
     return 0;
 }
 
