@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#define N 1000
+#define N 500
 
 using namespace std;
 

@@ -12,48 +12,21 @@
 #include "matr.h"
 #include "iog.h"
 
+#include "pipeline.h"
+#include "interface.h"
 
 int main()
 {
     setbuf(stdout, NULL);
     srand(time(nullptr));
 
-    auto m1 = generate();
-    auto m2 = generate();
-
-    matr *new_matr = get_csrrepresent_m(m1);
-    matr *new_matr2 = get_csrrepresent_m(m2);
-
-    int **new_mul = NULL;
-
     auto start = chrono::high_resolution_clock::now();
-    auto m3 = mutl_new(new_matr, new_matr2, N, N, N);
-    auto stop = chrono::high_resolution_clock::now();
-    auto dur1 = chrono::duration_cast<chrono::microseconds>((stop - start));
-    cout << "Последовательный: " << dur1.count() << '\n';
-    free(m3);
 
-    for (int i = 1; i < 256; i = i * 2) {
-        new_mul = mutl_parallel(new_matr, new_matr2, N, N, N, i);
-        for (int i = 0; i < N; i++)
-            free(new_mul[i]);
-        free(new_mul);
-    }
+    auto q = pipeline(8);
+    logging(q, 8, start);
 
-    // for (int i = 0; i < n; i++) {
-    //     cout << '\n';
-    //     for (int j = 0; j < q; j++)
-    //         cout << new_mul[i][j] << ' ';
-    // }
-    // cout << '\n';
+    auto q1 = pipelineposl(8);
+    logging(q1, 8, start);
+
     return 0;
 }
-
-/*
-4 3 5
-3 0 0 0 0 3
-1 2 3 0 2 0
-3 0 0 0 1
-0 0 3 0 0
-1 2 3 0 0
-*/
