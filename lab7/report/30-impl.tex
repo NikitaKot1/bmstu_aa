@@ -1,0 +1,204 @@
+\chapter{Технологическая часть}
+
+В данном разделе будут приведены требования к программному обеспечению, средства реализации и листинги кода.
+
+\section{Требования к программному обеспечению}
+
+К программе предъявляется ряд требований:
+
+\begin{itemize}[label=--]
+	\item на вход подается имя файла с матрицей смежности городов;
+	\item программа определяет количество дней и коэффициенты;
+	\item возможно измерение реального времени;
+\end{itemize}
+
+\section{Средства реализации}
+
+В качестве языка программирования для реализации данной лабораторной работы был выбран язык программирования Python \cite{pythonlang}. 
+
+В данном языке есть все требующиеся для данной лабораторной инструменты разработки. 
+
+Время работы реализаций алгоритмов было замерено с помощью функции process\_time() из библиотеки time \cite{pythonlangtime}
+
+\section{Реализация алгоритмов}
+В листинге \ref{lst:quick_sort} представлена реализация алгоритма полного перебора путей.
+\\
+\\
+
+\begin{lstlisting}[label=lst:quick_sort,caption=Реализация последовательного алгоритма умножения разреженных матриц]
+def fullCombinationAlg(matrix, size):
+	places = np.arange(size)
+	placesCombinations = list()
+
+	for combination in it.permutations(places):
+		combArr = list(combination)
+		placesCombinations.append(combArr)
+
+	minDist = float("inf")
+
+	for i in range(len(placesCombinations)):
+		placesCombinations[i].append(placesCombinations[i][0])
+		curDist = 0
+		for j in range(size):
+			startCity = placesCombinations[i][j]
+			endCity = placesCombinations[i][j + 1]
+			curDist += matrix[startCity][endCity]
+
+		if (curDist < minDist):
+			minDist = curDist
+			bestWay = placesCombinations[i]
+
+	return minDist, bestWay
+\end{lstlisting}
+
+В листинге \ref{lst:shaker_sort} представлена реализация муравьиного алгоритма поиска путей.
+
+\begin{lstlisting}[label=lst:shaker_sort,caption=Реализация муравьиного алгоритма поиска путей]
+def calcQ(matrix, size):
+	q = 0
+	count = 0
+	for i in range(size):
+		for j in range(size):
+			if (i != j):
+				q += matrix[i][j]
+				count += 1
+	return q / count
+
+def calcPheromones(size):
+	min_phero = 1
+	pheromones = [[min_phero for i in range(size)] for j in range(size)]
+	return pheromones
+
+
+def calcVisibility(matrix, size):
+	visibility = [[(1.0 / matrix[i][j] if (i != j) else 0) for j in range(size)] for i in range(size)]
+	return visibility
+
+
+def calcVisitedPlaces(route, ants):
+	visited = [list() for _ in range(ants)]
+	for ant in range(ants):
+		visited[ant].append(route[ant])
+	return visited
+
+
+def calcLength(matrix, route):
+	length = 0
+	for way_len in range(1, len(route)):
+		length += matrix[route[way_len - 1], route[way_len]]
+	return length
+
+
+def updatePheromones(matrix, places, visited, pheromones, q, k_evaporation):
+	ants = places
+	for i in range(places):
+		for j in range(places):
+			delta = 0
+			for ant in range(ants):
+				length = calcLength(matrix, visited[ant])
+				delta += q / length
+			pheromones[i][j] *= (1 - k_evaporation)
+			pheromones[i][j] += delta
+			if (pheromones[i][j] < MIN_PHEROMONE):
+				pheromones[i][j] = MIN_PHEROMONE
+	return pheromones
+
+
+def findWays(pheromones, visibility, visited, places, ant, alpha, beta):
+	pk = [0] * places
+	for place in range(places):
+		if place not in visited[ant]:
+			ant_place = visited[ant][-1]
+			pk[place] = pow(pheromones[ant_place][place], alpha) * \
+				pow(visibility[ant_place][place], beta)
+		else:
+			pk[place] = 0
+	sum_pk = sum(pk)
+	for place in range(places):
+		pk[place] /= sum_pk
+	return pk
+
+
+def chooseNextPlaceByPosibility(pk):
+	posibility = random()
+	choice = 0
+	chosenPlace = 0
+	while ((choice < posibility) and (chosenPlace < len(pk))):
+		choice += pk[chosenPlace]
+		chosenPlace += 1
+	return chosenPlace
+
+
+
+def antAlgorithm(matrix, places, alpha, beta, k_evaporation, days):
+	q = calcQ(matrix, places)
+	bestWay = []
+	minDist = float("inf")
+	pheromones = calcPheromones(places)
+	visibility = calcVisibility(matrix, places)
+	ants = places
+	for day in range(days):
+		route = np.arange(places)
+		visited = calcVisitedPlaces(route, ants)
+		for ant in range(ants):
+			while (len(visited[ant]) != ants):
+				pk = findWays(pheromones, visibility, visited, places, ant, alpha, beta)
+				chosenPlace = chooseNextPlaceByPosibility(pk)
+				visited[ant].append(chosenPlace - 1)
+			visited[ant].append(visited[ant][0])
+			curLength = calcLength(matrix, visited[ant])
+			if (curLength < minDist):
+				minDist = curLength
+				bestWay = visited[ant]
+		pheromones = updatePheromones(matrix, places, visited, pheromones, q, k_evaporation)
+	return minDist, bestWay
+\end{lstlisting}
+
+\FloatBarrier
+
+\section{Функциональные тесты}
+
+В таблице \ref{tbl:functional_test} приведены тесты для функций, реализующих алгоритмы сортировки.
+
+\begin{center}
+	\captionsetup{justification=raggedright,singlelinecheck=off}
+	\begin{longtable}[c]{|c|c|c|c|c|}\hline
+		Матрица смежности & Ожидаемый результат & Результат программы \\
+		\hline		
+		$ \begin{pmatrix}
+			0 & 1 & 2 \\
+			1 & 0 & 1 \\
+			2 & 1 & 0	
+		\end{pmatrix}$ &
+		4, [0, 1, 2, 0] &
+		4, [0, 1, 2, 0] \\
+		
+		$ \begin{pmatrix}
+			0 & 15 & 19 & 20 \\
+			15 &  0 & 12 & 13 \\
+			19 & 12 &  0 & 17 \\
+			20 & 13 & 17 &  0
+		\end{pmatrix}$ &
+		64, [0, 1, 2, 3, 0] &
+		64, [0, 1, 2, 3, 0] \\
+		
+		$ \begin{pmatrix}
+			0 &  4 &  2 &  1 & 7 \\
+			4 &  0 &  3 &  7 & 2 \\
+			2 &  3 &  0 & 10 & 3 \\
+			1 &  7 & 10 &  0 & 9 \\
+			7 &  2 &  3 &  9 & 0
+		\end{pmatrix}$ &
+		15, [0, 2, 4, 1, 3, 0] &
+		15, [0, 2, 4, 1, 3, 0] \\
+		\hline
+	\caption{Функциональные тесты\label{tbl:functional_test}} \\ 
+	\end{longtable}
+\end{center}
+
+\FloatBarrier
+
+
+\section*{Вывод}
+
+Написано и протестировано программное обеспечение для поставленной задачи.
