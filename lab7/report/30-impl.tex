@@ -162,7 +162,8 @@ def antAlgorithm(matrix, places, alpha, beta, k_evaporation, days):
 
 \begin{center}
 	\captionsetup{justification=raggedright,singlelinecheck=off}
-	\begin{longtable}[c]{|c|c|c|c|c|}\hline
+	\begin{longtable}[c]{|c|c|c|c|c|}
+		\caption{Функциональные тесты\label{tbl:functional_test}} \\ \hline
 		Матрица смежности & Ожидаемый результат & Результат программы \\
 		\hline		
 		$ \begin{pmatrix}
@@ -192,7 +193,6 @@ def antAlgorithm(matrix, places, alpha, beta, k_evaporation, days):
 		15, [0, 2, 4, 1, 3, 0] &
 		15, [0, 2, 4, 1, 3, 0] \\
 		\hline
-	\caption{Функциональные тесты\label{tbl:functional_test}} \\ 
 	\end{longtable}
 \end{center}
 
